@@ -6,11 +6,29 @@ public class AuthResponse {
     private String accessToken;
     private String refreshToken;
     private AccountType role;
-    private String hoten;
+    private String fullName;
     private Long userId;
     private String username;
     private Long refreshTokenId;
     private String avatar;
+    private String email;
+    private String bio;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
 
     public String getAvatar() {
         return avatar;
@@ -44,11 +62,11 @@ public class AuthResponse {
         this.userId = userId;
     }
 
-    public String getHoten() {
-        return hoten;
+    public String getFullName() {
+        return fullName;
     }
-    public void setHoten(String hoten) {
-        this.hoten = hoten;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public AccountType getRole() {
@@ -72,17 +90,21 @@ public class AuthResponse {
         this.refreshToken = refreshToken;
     }
 
+
+
     @Override
     public String toString() {
         return "AuthResponse{" +
                 "accessToken='" + accessToken + '\'' +
                 ", refreshToken='" + refreshToken + '\'' +
                 ", role=" + role +
-                ", hoten='" + hoten + '\'' +
+                ", fullName='" + fullName + '\'' +
                 ", userId=" + userId +
                 ", username='" + username + '\'' +
                 ", refreshTokenId=" + refreshTokenId +
-                ", avatar=" + avatar +
+                ", avatar='" + avatar + '\'' +
+                ", email='" + email + '\'' +
+                ", bio='" + bio + '\'' +
                 '}';
     }
 }

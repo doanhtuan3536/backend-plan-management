@@ -96,11 +96,13 @@ public class TokenService {
             throw new RefreshTokenExpiredException("Refresh token expired");
 
         AuthResponse response = generateTokens(foundRefreshToken.getUser());
-        response.setHoten(foundRefreshToken.getUser().getFullName());
+        response.setFullName(foundRefreshToken.getUser().getFullName());
         response.setRole(foundRefreshToken.getUser().getType());
         response.setUserId(foundRefreshToken.getUser().getUserId());
         response.setUsername(foundRefreshToken.getUser().getUsername());
         response.setAvatar(foundRefreshToken.getUser().getAvatar());
+        response.setBio(foundRefreshToken.getUser().getBio());
+        response.setEmail(foundRefreshToken.getUser().getEmail());
 
         refreshTokenRepo.delete(foundRefreshToken);
 

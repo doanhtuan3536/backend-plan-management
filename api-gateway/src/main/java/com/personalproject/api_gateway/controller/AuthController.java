@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -41,11 +42,31 @@ public class AuthController {
             @CookieValue(name = "opaque_token", required = false) String opaqueToken
 
     ) throws IOException, OpaqueTokenExpiredException, JwtValidationException {
+        if (opaqueToken == null) {
+            throw new OpaqueTokenExpiredException("Token invalid or expired");
+        }
 
         System.out.println(opaqueToken);
         TokenInfo tokenInfo = tokenService.validateToken(opaqueToken);
         UploadAvatarResponse response =
                 authServiceClient.uploadUserAvatar(userId, file, tokenInfo.getAccessToken());
+        return ResponseEntity.ok(response);
+
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(
+            @CookieValue(name = "opaque_token", required = false) String opaqueToken,
+           @RequestBody Map<String, Object> updates
+    ) throws IOException, OpaqueTokenExpiredException, JwtValidationException {
+        if (opaqueToken == null) {
+            throw new OpaqueTokenExpiredException("Token invalid or expired");
+        }
+        System.out.println(updates);
+
+        TokenInfo tokenInfo = tokenService.validateToken(opaqueToken);
+        User response =
+                authServiceClient.updateUser(updates, tokenInfo.getAccessToken());
         return ResponseEntity.ok(response);
 
     }
@@ -82,6 +103,9 @@ public class AuthController {
                 .refreshTokenId(tokenInfo.getRefreshTokenId())
                 .userId(tokenInfo.getUserId())
                 .username(tokenInfo.getUsername())
+                .fullName(tokenInfo.getFullName())
+                .bio(tokenInfo.getBio())
+                .email(tokenInfo.getEmail())
                 .build();
         Cookie opaqueCookie = new Cookie("opaque_token", opaqueToken);
         opaqueCookie.setHttpOnly(true);
@@ -101,7 +125,6 @@ public class AuthController {
 //            tokenService.validateToken();
         if(refreshToken == null) {
             System.out.println("Refresh token not in cookie");
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             throw new RefreshTokenException("Refresh token not in cookie");
         }
         System.out.println(refreshToken);
@@ -135,6 +158,9 @@ public class AuthController {
                 .refreshTokenId(authResponse.getRefreshTokenId())
                 .userId(authResponse.getUserId())
                 .username(authResponse.getUsername())
+                .fullName(authResponse.getFullName())
+                .bio(authResponse.getBio())
+                .email(authResponse.getEmail())
                 .build();
 
         return ResponseEntity.ok(response);
@@ -146,23 +172,12 @@ public class AuthController {
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse) {
         try {
-            // Forward login request to user service
-//            String url = userServiceUrl + "/api/login";
-//            AuthResponse authResponse = restTemplate.postForObject(
-//                    url, request, AuthResponse.class);
 
             AuthResponse authResponse = authServiceClient.login(request.getUsername(), request.getPassword());
             System.out.println(authResponse);
-
-//            if (authResponse == null) {
-//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-//            }
-
-            // Create opaque tokens
-//            authResponse.setUsername(request.getUsername());
             TokenPair tokenPair = tokenService.createTokens(authResponse, httpRequest);
 
-            // Set HTTP Only cookie for opaque token
+
             Cookie opaqueCookie = new Cookie("opaque_token", tokenPair.getOpaqueToken());
             opaqueCookie.setHttpOnly(true);
             opaqueCookie.setSecure(true);
@@ -171,7 +186,6 @@ public class AuthController {
             opaqueCookie.setAttribute("SameSite", "Strict");
             httpResponse.addCookie(opaqueCookie);
 
-            // Set refresh token in separate cookie
             Cookie refreshCookie = new Cookie("refresh_token", tokenPair.getRefreshToken());
             refreshCookie.setHttpOnly(true);
             refreshCookie.setSecure(true);
@@ -188,6 +202,9 @@ public class AuthController {
                     .refreshTokenId(authResponse.getRefreshTokenId())
                     .userId(authResponse.getUserId())
                     .username(authResponse.getUsername())
+                    .fullName(authResponse.getFullName())
+                    .bio(authResponse.getBio())
+                    .email(authResponse.getEmail())
                     .build();
 
             return ResponseEntity.ok(response);
@@ -202,6 +219,51 @@ public class AuthController {
 //                            .build());
         }
     }
+    @PostMapping("/send-verification-code")
+    public ResponseEntity<?> sendVerificationCodeRequest(@RequestBody EmailRequest email,
+                                                  @CookieValue(name = "opaque_token", required = false) String opaqueToken) throws OpaqueTokenExpiredException, JwtValidationException {
+        if (opaqueToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        System.out.println(email.getEmail());
+        System.out.println(opaqueToken);
+        TokenInfo tokenInfo = tokenService.validateToken(opaqueToken);
+
+        VerificationCodeResponse verificationCodeResponse = authServiceClient.sendVerificationCodeRequest(email, tokenInfo.getAccessToken());
+        return ResponseEntity.ok(verificationCodeResponse);
+
+    }
+
+    @PostMapping("/verify-code")
+    public ResponseEntity<?> sendVerificationCode(@RequestBody VerificationCodeRequest request,
+                                                  @CookieValue(name = "opaque_token", required = false) String opaqueToken) throws OpaqueTokenExpiredException, JwtValidationException {
+        if (opaqueToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        System.out.println(request);
+        System.out.println(opaqueToken);
+        TokenInfo tokenInfo = tokenService.validateToken(opaqueToken);
+        authServiceClient.sendVerificationCode(request, tokenInfo.getAccessToken());
+        return ResponseEntity.ok().build();
+
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request,
+                                                  @CookieValue(name = "opaque_token", required = false) String opaqueToken) throws OpaqueTokenExpiredException, JwtValidationException {
+        if (opaqueToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        System.out.println(request);
+        System.out.println(opaqueToken);
+        TokenInfo tokenInfo = tokenService.validateToken(opaqueToken);
+        authServiceClient.changePassword(request, tokenInfo.getAccessToken());
+        return ResponseEntity.ok().build();
+
+    }
+
+
+
     @PostMapping("/logout")
     public ResponseEntity<?> logout(
             @Valid @RequestBody LogoutRequest request,
@@ -213,11 +275,6 @@ public class AuthController {
 
 
         try {
-            // Forward login request to user service
-//            String url = userServiceUrl + "/api/login";
-//            AuthResponse authResponse = restTemplate.postForObject(
-//                    url, request, AuthResponse.class);
-//            System.out.println(Arrays.toString(httpRequest.getCookies()));
             System.out.println(opaqueToken);
             System.out.println(refreshToken);
 
@@ -226,7 +283,7 @@ public class AuthController {
 
             Cookie opaqueCookie = new Cookie("opaque_token", opaqueToken);
             opaqueCookie.setHttpOnly(true);
-            opaqueCookie.setSecure(true); // Set to true in production with HTTPS
+            opaqueCookie.setSecure(true);
             opaqueCookie.setPath("/");
             opaqueCookie.setMaxAge(0);
             opaqueCookie.setAttribute("SameSite", "Strict");
@@ -255,11 +312,6 @@ public class AuthController {
         } catch (Exception e) {
             System.out.println("Logout failed: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-//                    .body(ErrorResponse.builder()
-//                            .status(HttpStatus.UNAUTHORIZED.value())
-//                            .error("Unauthorized")
-//                            .message("Invalid username or password")
-//                            .build());
         }
     }
 }

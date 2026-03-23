@@ -7,6 +7,18 @@ eureka:
 spring:
   application:
     name: user-service
+#  mail:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: doanhtuan3536@gmail.com
+#    password: FUEI DQAE NHFG BVOT
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+#            required: true
   config:
     import: optional:configserver:http://config-server-plan-management
   cloud:

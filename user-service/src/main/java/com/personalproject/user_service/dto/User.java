@@ -31,8 +31,15 @@ public class User {
 
     private AccountStatus status;
 
-    public User(LocalDateTime createdAt, Long userId, String username, String avatar, String email, String fullName, LocalDate dateOfBirth,
-                Gender gender, String phoneNumber, AccountType type, AccountStatus status) {
+    private String bio;
+
+
+
+    public User() {
+    }
+
+    public User(LocalDateTime createdAt, Long userId, String username, String avatar, String email, String fullName,
+                LocalDate dateOfBirth, Gender gender, String phoneNumber, AccountType type, AccountStatus status, String bio) {
         this.createdAt = createdAt;
         this.userId = userId;
         this.username = username;
@@ -44,9 +51,15 @@ public class User {
         this.phoneNumber = phoneNumber;
         this.type = type;
         this.status = status;
+        this.bio = bio;
     }
 
-    public User() {
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -13,4 +13,7 @@ public interface AccountRepo extends CrudRepository<Account, Long> {
 
     @Query("SELECT rt FROM Account rt WHERE rt.userId = ?1 AND rt.enabled = true AND rt.deleted = false")
     Optional<Account> findByUserId(Long userId);
+
+    @Query("SELECT rt FROM Account rt WHERE rt.email = ?1 AND rt.enabled = true AND rt.deleted = false")
+    Optional<Account> findByEmail(String email);
 }

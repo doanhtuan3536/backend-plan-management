@@ -25,6 +25,9 @@ public class Account extends BaseEntity {
     @Lob
     private String avatar;
 
+    @Lob
+    private String bio;
+
     @Column(nullable = false)
     private String password;
 
@@ -54,6 +57,14 @@ public class Account extends BaseEntity {
 //        super(createdAt, updatedAt, deleted);
 //    }
 
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
 
     public Account() {
     }
@@ -177,6 +188,7 @@ public class Account extends BaseEntity {
                 "userId=" + userId +
                 ", username='" + username + '\'' +
                 ", avatar='" + avatar + '\'' +
+                ", bio='" + bio + '\'' +
                 ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
                 ", fullName='" + fullName + '\'' +

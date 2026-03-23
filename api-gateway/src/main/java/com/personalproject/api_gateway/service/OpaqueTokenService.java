@@ -50,7 +50,7 @@ public class OpaqueTokenService {
                 .accessToken(authResponse.getAccessToken())
                 .userId(authResponse.getUserId())
                 .username(authResponse.getUsername())
-                .fullName(authResponse.getHoten())
+                .fullName(authResponse.getFullName())
                 .role(authResponse.getRole())
                 .createdAt(Instant.now())
                 .lastAccessTime(Instant.now())
@@ -58,6 +58,8 @@ public class OpaqueTokenService {
                 .userAgent(request.getHeader("User-Agent"))
                 .avatar(authResponse.getAvatar())
                 .refreshTokenId(authResponse.getRefreshTokenId())
+                .bio(authResponse.getBio())
+                .email(authResponse.getEmail())
                 .build();
 
         // Store in Redis
@@ -139,7 +141,7 @@ public class OpaqueTokenService {
                 .accessToken(newAuthResponse.getAccessToken())
                 .userId(userId)
                 .username(newAuthResponse.getUsername())
-                .fullName(newAuthResponse.getHoten())
+                .fullName(newAuthResponse.getFullName())
                 .role(newAuthResponse.getRole())
                 .createdAt(Instant.now())
                 .lastAccessTime(Instant.now())

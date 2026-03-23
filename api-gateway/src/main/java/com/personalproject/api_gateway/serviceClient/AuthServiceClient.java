@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Component
 public class AuthServiceClient {
@@ -20,8 +21,86 @@ public class AuthServiceClient {
     private final String serviceLogoutUrl = serviceURL + "/logout";
     private final String serviceUploadAvatarUrl = serviceURL + "/upload/avatar";
     private final String refreshTokenUrl = serviceURL + "/token/refresh";
+    private final String updateProfileUrl = serviceURL + "/profile";
+    private final String sendVerificationCodeUrl = serviceURL + "/send-verification-code";
+    private final String sendVerificationCodeVerifyUrl = serviceURL + "/verify-code";
+    private final String changePasswordUrl = serviceURL + "/change-password";
     @Autowired
     private RestTemplate restTemplate;
+
+    public VerificationCodeResponse sendVerificationCodeRequest(EmailRequest emailRequest, String accessToken) throws JwtValidationException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+        HttpEntity<?> request = new HttpEntity<>(emailRequest,headers);
+        ResponseEntity<VerificationCodeResponse> response = null;
+        try{
+            response= restTemplate.exchange(
+                    sendVerificationCodeUrl, HttpMethod.POST, request, VerificationCodeResponse.class
+            );
+            return response.getBody();
+        }
+        catch(HttpClientErrorException e){
+            ErrorDTO error = e.getResponseBodyAs(ErrorDTO.class);
+            error.getErrors().forEach((errorMsg)-> {
+                if (errorMsg.contains("Too many verification requests")){
+                    throw new VerificationCodeException("Too many verification requests");
+                }
+                if (errorMsg.contains("No user found with given email")){
+                    throw new UserNotFoundException("No user found with given email");
+                }
+            });
+            throw new JwtValidationException(error.getErrors().get(0));
+        }
+    }
+
+    public void sendVerificationCode(VerificationCodeRequest verificationCodeRequest, String accessToken) throws JwtValidationException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+        HttpEntity<?> request = new HttpEntity<>(verificationCodeRequest,headers);
+        ResponseEntity<VerificationCodeResponse> response = null;
+        try{
+            response= restTemplate.exchange(
+                    sendVerificationCodeVerifyUrl, HttpMethod.POST, request, VerificationCodeResponse.class
+            );
+
+        }
+        catch(HttpClientErrorException e){
+            ErrorDTO error = e.getResponseBodyAs(ErrorDTO.class);
+            error.getErrors().forEach((errorMsg)-> {
+                if (errorMsg.contains("Too many verifying attempts. Please try again later")){
+                    throw new VerifyCodeTooManyException("Too many verifying attempts. Please try again later.");
+                }
+                if (errorMsg.contains("Verification code is incorrect")){
+                    throw new VerifyCodeWrongException("Verification code is incorrect");
+                }
+            });
+            throw new JwtValidationException(error.getErrors().get(0));
+        }
+    }
+
+    public void changePassword(ChangePasswordRequest passwordRequest, String accessToken) throws JwtValidationException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+        HttpEntity<?> request = new HttpEntity<>(passwordRequest,headers);
+        ResponseEntity<?> response = null;
+        try{
+            response= restTemplate.exchange(
+                    changePasswordUrl, HttpMethod.POST, request, Object.class
+            );
+        }
+        catch(HttpClientErrorException e){
+            ErrorDTO error = e.getResponseBodyAs(ErrorDTO.class);
+            error.getErrors().forEach((errorMsg)-> {
+                if (errorMsg.contains("No user found with given id")){
+                    throw new UserNotFoundException("No user found with given id.");
+                }
+                if (errorMsg.contains("Old password is wrong!")){
+                    throw new PasswordNotMatchingException("Old password is wrong!");
+                }
+            });
+            throw new JwtValidationException(error.getErrors().get(0));
+        }
+    }
 
     public AuthResponse login(String username, String password) {
         HttpHeaders headers = new HttpHeaders();
@@ -63,6 +142,29 @@ public class AuthServiceClient {
             error.getErrors().forEach((errorMsg)-> {
                 if (errorMsg.contains("No user found with given id")){
                     throw new UserNotFoundException(userId);
+                }
+            });
+            throw new JwtValidationException(error.getErrors().get(0));
+        }
+    }
+    public User updateUser(Map<String, Object> updates,  String accessToken) throws JwtValidationException, UserNotFoundException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+        HttpEntity<?> request = new HttpEntity<>(updates, headers);
+        ResponseEntity<User> response = null;
+        try{
+            response= restTemplate.exchange(
+                    updateProfileUrl, HttpMethod.PUT, request, User.class
+            );
+            System.out.println(response);
+            return response.getBody();
+        }
+        catch(HttpClientErrorException e){
+            System.out.println(e);
+            ErrorDTO error = e.getResponseBodyAs(ErrorDTO.class);
+            error.getErrors().forEach((errorMsg)-> {
+                if (errorMsg.contains("No user found with given id")){
+                    throw new UserNotFoundException((long)(int)updates.get("userId"));
                 }
             });
             throw new JwtValidationException(error.getErrors().get(0));

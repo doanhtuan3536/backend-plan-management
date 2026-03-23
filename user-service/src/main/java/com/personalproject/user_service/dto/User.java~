@@ -31,19 +31,19 @@ public class User {
 
     private AccountStatus status;
 
-    public User(LocalDateTime createdAt, Long userId, String username, String avatar, String email, String fullName, LocalDate dateOfBirth,
-                Gender gender, String phoneNumber, AccountType type, AccountStatus status) {
-        this.createdAt = createdAt;
-        this.userId = userId;
-        this.username = username;
-        this.avatar = avatar;
-        this.email = email;
-        this.fullName = fullName;
-        this.dateOfBirth = dateOfBirth;
-        this.gender = gender;
-        this.phoneNumber = phoneNumber;
-        this.type = type;
-        this.status = status;
+    private String bio;
+
+
+
+    public User() {
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 
     public LocalDateTime getCreatedAt() {

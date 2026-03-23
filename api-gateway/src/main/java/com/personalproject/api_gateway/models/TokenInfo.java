@@ -22,10 +22,12 @@ public class TokenInfo implements Serializable {
     private Instant lastAccessTime;
     private String ipAddress;
     private String userAgent;
+    private String bio;
     private Long refreshTokenId;
+    private String email;
 
     public TokenInfo(String accessToken, String refreshToken, Long userId, String username, String fullName, String role, String avatar,
-                     Instant createdAt, Instant lastAccessTime, String ipAddress, String userAgent, Long refreshTokenId) {
+                     Instant createdAt, Instant lastAccessTime, String ipAddress, String userAgent, String bio, Long refreshTokenId, String email) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.userId = userId;
@@ -37,10 +39,28 @@ public class TokenInfo implements Serializable {
         this.lastAccessTime = lastAccessTime;
         this.ipAddress = ipAddress;
         this.userAgent = userAgent;
+        this.bio = bio;
         this.refreshTokenId = refreshTokenId;
+        this.email = email;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public TokenInfo() {}
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
 
     public Long getRefreshTokenId() {
         return refreshTokenId;

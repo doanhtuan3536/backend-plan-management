@@ -1,0 +1,2 @@
+package com.personalproject.user_service.services;public class VerificationRequestTooManyException {
+}

@@ -1,9 +1,12 @@
 package com.personalproject.user_service;
 
 import com.personalproject.user_service.dto.ErrorDTO;
+import com.personalproject.user_service.exception.PasswordNotMatchingException;
 import com.personalproject.user_service.security.jwt.JwtValidationException;
 import com.personalproject.user_service.security.refreshtoken.RefreshTokenExpiredException;
 import com.personalproject.user_service.security.refreshtoken.RefreshTokenNotFoundException;
+import com.personalproject.user_service.services.VerificationAttempsException;
+import com.personalproject.user_service.services.VerificationRequestTooManyException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -15,7 +18,7 @@ import java.util.Date;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(AccountNotFoundException.class)
+    @ExceptionHandler({AccountNotFoundException.class, VerificationRequestTooManyException.class, VerificationAttempsException.class, PasswordNotMatchingException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public ErrorDTO handleAccountNotFoundException(HttpServletRequest request, Exception ex) {

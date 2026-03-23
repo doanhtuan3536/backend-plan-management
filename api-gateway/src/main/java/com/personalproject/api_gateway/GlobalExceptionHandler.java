@@ -1,10 +1,9 @@
 package com.personalproject.api_gateway;
 
 import com.personalproject.api_gateway.dto.ErrorDTO;
+import com.personalproject.api_gateway.dto.VerificationCodeException;
 import com.personalproject.api_gateway.service.OpaqueTokenExpiredException;
-import com.personalproject.api_gateway.serviceClient.JwtValidationException;
-import com.personalproject.api_gateway.serviceClient.RefreshTokenException;
-import com.personalproject.api_gateway.serviceClient.UserNotFoundException;
+import com.personalproject.api_gateway.serviceClient.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -17,7 +16,7 @@ import java.util.Date;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(UserNotFoundException.class)
+    @ExceptionHandler({UserNotFoundException.class, VerificationCodeException.class, VerifyCodeTooManyException.class, VerifyCodeWrongException.class, PasswordNotMatchingException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public ErrorDTO handleJwtValidationException(HttpServletRequest request, Exception ex) {

@@ -1,8 +1,7 @@
 package com.personalproject.user_service;
 
-import com.personalproject.user_service.dto.LoginForm;
-import com.personalproject.user_service.dto.LogoutRequest;
-import com.personalproject.user_service.dto.User;
+import com.personalproject.user_service.dto.*;
+import com.personalproject.user_service.exception.PasswordNotMatchingException;
 import com.personalproject.user_service.models.Account;
 import com.personalproject.user_service.models.AccountType;
 import com.personalproject.user_service.security.auth.AuthResponse;
@@ -12,9 +11,7 @@ import com.personalproject.user_service.security.jwt.JwtUtility;
 import com.personalproject.user_service.security.refreshtoken.RefreshTokenExpiredException;
 import com.personalproject.user_service.security.refreshtoken.RefreshTokenNotFoundException;
 import com.personalproject.user_service.security.refreshtoken.RefreshTokenRequest;
-import com.personalproject.user_service.services.AccountService;
-import com.personalproject.user_service.services.CloudinaryService;
-import com.personalproject.user_service.services.RefreshTokenService;
+import com.personalproject.user_service.services.*;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +46,9 @@ public class UserController {
 
     @Autowired
     private RefreshTokenService refreshTokenService;
+
+    @Autowired
+    private  EmailVerificationService emailVerificationService;
 //    @Autowired
 //    @Qualifier("serviceAuthManager")
 //    private AuthenticationManager serviceAuthManager;
@@ -84,7 +84,9 @@ public class UserController {
             token.setUsername(username);
             token.setAvatar(customUserDetails.getUser().getAvatar());
             token.setRole(AccountType.valueOf(customUserDetails.getAuthorities().iterator().next().getAuthority().toUpperCase()));
-            token.setHoten(customUserDetails.getUser().getFullName());
+            token.setFullName(customUserDetails.getUser().getFullName());
+            token.setBio(customUserDetails.getUser().getBio());
+            token.setEmail(customUserDetails.getUser().getEmail());
             System.out.println(token);
             return ResponseEntity.ok(token);
         } catch (BadCredentialsException e) {
@@ -123,4 +125,37 @@ public class UserController {
 
     }
 
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@RequestBody Map<String, Object> updates) throws AccountNotFoundException {
+        System.out.println(updates);
+        Account user = accountService.updateProfile(updates);
+        User user1 = modelMapper.map(user, User.class);
+        return ResponseEntity.ok(user);
+    }
+
+
+
+//    @PostMapping("/change-password")
+//    public ResponseEntity<?> changePassword(@RequestBody Map<String, Object> updates){
+//
+//    }
+
+    @PostMapping("/send-verification-code")
+    public ResponseEntity<?> sendVerificationCode(@RequestBody EmailRequest email) throws AccountNotFoundException, VerificationRequestTooManyException {
+        VerificationCodeResponse verificationCodeResponse = emailVerificationService.sendVerificationCode(email.getEmail());
+        return ResponseEntity.ok(verificationCodeResponse);
+
+    }
+
+    @PostMapping("/verify-code")
+    public ResponseEntity<?> verifyCode(@RequestBody VerificationCodeRequest verificationCodeRequest) throws AccountNotFoundException {
+        emailVerificationService.verifyCode(verificationCodeRequest.getEmail(), verificationCodeRequest.getCode());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> chanegPassword(@RequestBody ChangePasswordRequest changePasswordRequest) throws AccountNotFoundException, PasswordNotMatchingException {
+        accountService.updatePassword(changePasswordRequest);
+        return ResponseEntity.ok().build();
+    }
 }
